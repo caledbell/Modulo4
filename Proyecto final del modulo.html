@@ -1,0 +1,250 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CRUD de contactos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">CRUD de contactos</a>
+            <div>
+                <a class="btn btn-outline-light btn-sm" href="#registro">Registro</a>
+                <a class="btn btn-light btn-sm" href="#consulta">Consulta</a>
+            </div>
+        </div>
+    </nav>
+    <main class="container py-4">
+        <section id="registro" class="mb-5">
+            <div class="row justify-content-center">
+                <div class="col-lg-7">
+                    <div class="card shadow">
+                        <div class="card-header bg-primary text-white">
+                            <h2 class="h4 mb-0">Registro de contactos</h2>
+                        </div>
+                        <div class="card-body">
+                            <form id="formContacto">
+                                <input type="hidden" id="indice">
+                                <div class="mb-3">
+                                    <label for="nombre" class="form-label">Nombre</label>
+                                    <input type="text" id="nombre"
+                                           class="form-control"
+                                           placeholder="Ingrese el nombre" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="identificacion" class="form-label">
+                                        Identificación
+                                    </label>
+                                    <input type="text" id="identificacion"
+                                           class="form-control"
+                                           placeholder="Ingrese la identificación" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="telefono" class="form-label">Teléfono</label>
+                                    <input type="tel" id="telefono"
+                                           class="form-control"
+                                           placeholder="Ej. 8888-8888" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="correo" class="form-label">Correo</label>
+                                    <input type="email" id="correo"
+                                           class="form-control"
+                                           placeholder="ejemplo@correo.com" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="estado" class="form-label">Estado</label>
+                                    <select id="estado" class="form-select">
+                                        <option value="Activo">Activo</option>
+                                        <option value="Inactivo">Inactivo</option>
+                                    </select>
+                                </div>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <button type="submit" class="btn btn-success">
+                                        Guardar
+                                    </button>
+                                    <button type="reset" class="btn btn-secondary"
+                                            id="btnLimpiar">
+                                        Limpiar
+                                    </button>
+                                    <button type="button" class="btn btn-danger"
+                                            id="btnCancelar">
+                                        Cancelar
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section id="consulta">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h4 mb-0">Consulta de contactos</h2>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="buscar" class="form-label">Buscar</label>
+                        <input type="search" id="buscar" class="form-control"
+                               placeholder="Buscar por nombre, identificación, teléfono o correo">
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Identificación</th>
+                                    <th>Teléfono</th>
+                                    <th>Correo</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaContactos"></tbody>
+                        </table>
+                    </div>
+                    <p id="mensajeVacio" class="text-muted mb-0"></p>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer class="bg-dark text-white text-center py-3 mt-5">
+        Proyecto realizado por: Darren caled castrillo bell
+    </footer>
+
+    <script>
+        // Registros de ejemplo
+        let contactos = [
+            {
+                nombre: "Ana López",
+                identificacion: "101230456",
+                telefono: "8888-8888",
+                correo: "ana@correo.com",
+                estado: "Activo"
+            },
+            {
+                nombre: "Carlos Méndez",
+                identificacion: "202340567",
+                telefono: "8777-7777",
+                correo: "carlos@correo.com",
+                estado: "Activo"
+            },
+            {
+                nombre: "María Rodríguez",
+                identificacion: "303450678",
+                telefono: "8666-6666",
+                correo: "maria@correo.com",
+                estado: "Inactivo"
+            }
+        ];
+        const formulario = document.getElementById("formContacto");
+        const tabla = document.getElementById("tablaContactos");
+        const buscar = document.getElementById("buscar");
+        const mensajeVacio = document.getElementById("mensajeVacio");
+        const indice = document.getElementById("indice");
+        function crearCelda(texto) {
+            const td = document.createElement("td");
+            td.textContent = texto;
+            return td;
+        }
+        function mostrarContactos() {
+            const filtro = buscar.value.toLocaleLowerCase();
+            tabla.replaceChildren();
+            const encontrados = contactos
+                .map((contacto, index) => ({ contacto, index }))
+                .filter(({ contacto }) =>
+                    Object.values(contacto).some(valor =>
+                        valor.toLocaleLowerCase().includes(filtro)
+                    )
+                );
+            mensajeVacio.textContent = encontrados.length
+                ? ""
+                : "No se encontraron contactos.";
+            encontrados.forEach(({ contacto, index }) => {
+                const fila = document.createElement("tr");
+                fila.append(
+                    crearCelda(contacto.nombre),
+                    crearCelda(contacto.identificacion),
+                    crearCelda(contacto.telefono),
+                    crearCelda(contacto.correo)
+                );
+                const celdaEstado = document.createElement("td");
+                const etiqueta = document.createElement("span");
+                etiqueta.className = contacto.estado === "Activo"
+                    ? "badge bg-success"
+                    : "badge bg-secondary";
+                etiqueta.textContent = contacto.estado;
+                celdaEstado.appendChild(etiqueta);
+                fila.appendChild(celdaEstado);
+                const acciones = document.createElement("td");
+                acciones.className = "text-nowrap";
+                const modificar = document.createElement("button");
+                modificar.type = "button";
+                modificar.className = "btn btn-outline-warning btn-sm me-1";
+                modificar.textContent = "Modificar";
+                modificar.addEventListener("click", () => editarContacto(index));
+                const eliminar = document.createElement("button");
+                eliminar.type = "button";
+                eliminar.className = "btn btn-outline-danger btn-sm";
+                eliminar.textContent = "Eliminar";
+                eliminar.addEventListener("click", () => eliminarContacto(index));
+                acciones.append(modificar, eliminar);
+                fila.appendChild(acciones);
+                tabla.appendChild(fila);
+            });
+        }
+        formulario.addEventListener("submit", function(evento) {
+            evento.preventDefault();
+            const contacto = {
+                nombre: document.getElementById("nombre").value.trim(),
+                identificacion: document.getElementById("identificacion").value.trim(),
+                telefono: document.getElementById("telefono").value.trim(),
+                correo: document.getElementById("correo").value.trim(),
+                estado: document.getElementById("estado").value
+            };
+            if (indice.value === "") {
+                contactos.push(contacto);
+            } else {
+                contactos[Number(indice.value)] = contacto;
+            }
+            formulario.reset();
+            indice.value = "";
+            mostrarContactos();
+            document.getElementById("consulta").scrollIntoView();
+        });
+        function editarContacto(index) {
+            const contacto = contactos[index];
+            document.getElementById("nombre").value = contacto.nombre;
+            document.getElementById("identificacion").value = contacto.identificacion;
+            document.getElementById("telefono").value = contacto.telefono;
+            document.getElementById("correo").value = contacto.correo;
+            document.getElementById("estado").value = contacto.estado;
+            indice.value = index;
+            document.getElementById("registro").scrollIntoView();
+        }
+        function eliminarContacto(index) {
+            const confirmar = confirm(
+                "¿Está seguro de que desea eliminar este contacto?"
+            );
+            if (confirmar) {
+                contactos.splice(index, 1);
+                mostrarContactos();
+            }
+        }
+        buscar.addEventListener("input", mostrarContactos);
+        document.getElementById("btnCancelar").addEventListener("click", () => {
+            formulario.reset();
+            indice.value = "";
+            document.getElementById("registro").scrollIntoView();
+        });
+        document.getElementById("btnLimpiar").addEventListener("click", () => {
+            indice.value = "";
+        });
+        mostrarContactos();
+    </script>
+</body>
+</html>
